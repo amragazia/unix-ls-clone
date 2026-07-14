@@ -1,10 +1,13 @@
 from pathlib import Path
 import sys
+from dataclasses import dataclass
+import stat
+from datetime import datetime
+import pwd
+import grp
 
 BLUE = "\033[34m"
 RESET = "\033[0m"
-DIR_PREFIX = "d "
-FILE_PREFIX = "- "
 
 
 def parse_args(args: list[str]) -> tuple[list[Path], set[str]]:
@@ -15,7 +18,7 @@ def parse_args(args: list[str]) -> tuple[list[Path], set[str]]:
         if arg.startswith("-"):
             if arg not in valid_options:
                 print(f"ls: invalid option -- '{arg}'", file=sys.stderr)
-                sys.exit(1)
+                return list(), set()
             options.add(arg)
             continue
         path = Path(arg)
@@ -37,32 +40,81 @@ def validate_paths(paths: list[Path]) -> list[Path]:
             continue
 
         if not path.is_dir():
-            print("Error: Path Must Be A Directory", file=sys.stderr)
+            print(f"Error: '{path}' Must Be A Directory", file=sys.stderr)
             continue
 
         valid_paths.append(path)
 
-    if not valid_paths:
-        return []
-
     return valid_paths
 
 
-def list_directory(valid_paths: list[Path], flags: set[str]) -> None:
+@dataclass
+class FileInfo:
+    permissions: str
+    owner: str
+    group: str
+    size: int
+    hard_links: int
+    modified_mtime: datetime
+    # modified_atime: datetime
+    # modified_ctime: datetime
 
-    # flags not applied yet 
+
+def get_metadata(item: Path) -> FileInfo:
+
+    metadata = item.stat()
+    # permissions = stat.filemode(metadata.st_mode)
+    # modified_mtime = datetime.fromtimestamp(metadata.st_mtime)
+    # # modified_atime = datetime.fromtimestamp(metadata.st_atime)
+    # # modified_ctime = datetime.fromtimestamp(metadata.st_ctime)
+    # owner = pwd.getpwuid(metadata.st_uid).pw_name
+    # group = grp.getgrgid(metadata.st_gid).gr_name
+    # size = metadata.st_size
+    # hard_links = metadata.st_nlink
+
+    info = FileInfo(
+        permissions=stat.filemode(metadata.st_mode),
+        owner=pwd.getpwuid(metadata.st_uid).pw_name,
+        group=grp.getgrgid(metadata.st_gid).gr_name,
+        size=metadata.st_size,
+        hard_links=metadata.st_nlink,
+        modified_mtime=datetime.fromtimestamp(metadata.st_mtime),
+        # modified_atime=modified_atime,
+        # modified_ctime=modified_ctime
+    )
+
+    return info
+
+
+def format_long_listing(item: Path):
+    metadata = get_metadata(item)
+    print(
+        f"{metadata.permissions} "
+        f"{metadata.hard_links} "
+        f"{metadata.owner} "
+        f"{metadata.group} "
+        f"{metadata.size:>6} "
+        f"{metadata.modified_mtime}",
+        end=" ",
+    )
+
+
+def list_directories(valid_paths: list[Path], flags: set[str]) -> None:
 
     for path in valid_paths:
-        print(f"{path}:")
+        if len(valid_paths) > 1:
+            print(f"{path}:")
         for item in sorted(path.iterdir(), key=lambda item: item.name.lower()):
             if "-a" not in flags and item.name.startswith("."):
                 continue
+            if "-l" in flags:
+                format_long_listing(item=item)
             if item.is_dir():
-                print(f"{BLUE}{DIR_PREFIX}{item.name}{RESET}")
+                print(f"{BLUE}{item.name}{RESET}")
             else:
-                print(f"{FILE_PREFIX}{item.name}")
+                print(item.name)
 
-        print("\n")
+        print()
 
 
 def main() -> int:
@@ -76,7 +128,7 @@ def main() -> int:
     if not valid_paths:
         return 1
 
-    list_directory(valid_paths, flags)
+    list_directories(valid_paths, flags)
 
     return 0
 
