@@ -86,17 +86,23 @@ def get_metadata(item: Path) -> FileInfo:
     return info
 
 
-def format_long_listing(item: Path):
+def format_long_listing(item: Path) -> str:
     metadata = get_metadata(item)
-    print(
+    return (
         f"{metadata.permissions} "
         f"{metadata.hard_links} "
         f"{metadata.owner} "
         f"{metadata.group} "
         f"{metadata.size:>6} "
-        f"{metadata.modified_mtime}",
-        end=" ",
+        f"{metadata.modified_mtime:%b %d %H:%M}"
     )
+
+
+def format_name(item: Path) -> str:
+    if item.is_dir():
+        return(f"{BLUE}{item.name}{RESET}")
+    
+    return(item.name)
 
 
 def list_directories(valid_paths: list[Path], flags: set[str]) -> None:
@@ -108,11 +114,9 @@ def list_directories(valid_paths: list[Path], flags: set[str]) -> None:
             if "-a" not in flags and item.name.startswith("."):
                 continue
             if "-l" in flags:
-                format_long_listing(item=item)
-            if item.is_dir():
-                print(f"{BLUE}{item.name}{RESET}")
-            else:
-                print(item.name)
+                print(format_long_listing(item=item), end=" ")
+            print(format_name(item=item))
+
 
         print()
 
