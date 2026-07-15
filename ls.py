@@ -95,12 +95,13 @@ def format_name(item: Path) -> str:
     return item.name
 
 
-def list_directories(path: Path, flags: set[str]) -> None:
-    if not len(sys.argv) == 2:
-
+def list_directories(path: Path, flags: set[str], print_header: bool = False) -> None:
+    if print_header:    
         print(f"{path}:")
+
     items = sorted(path.iterdir(), key=lambda item: item.name.lower())
 
+    # Print the contents of the current directory
     for item in items:
         if "-a" not in flags and item.name.startswith("."):
             continue
@@ -108,21 +109,26 @@ def list_directories(path: Path, flags: set[str]) -> None:
             print(format_long_listing(item=item), end=" ")
 
         print(format_name(item=item))
+
+    # Handle recursive diving into subdirectories
     for item in items:
         if "-R" in flags and item.is_dir():
             if "-a" not in flags and item.name.startswith("."):
                 continue
             print()
-            list_directories(item, flags)
+            list_directories(item, flags, print_header=True)
 
 
 def manage_list_directories(valid_paths: list[Path], flags: set[str]) -> None:
 
-    for path in valid_paths:
+    multiple_path = len(valid_paths) > 1
 
-        list_directories(path, flags)
+    for i, path in enumerate(valid_paths):
+        # Print a blank line between different root directories for readability
+        if i > 0: 
+            print()
 
-        print()
+        list_directories(path, flags, print_header=multiple_path)
 
 
 def main() -> int:
