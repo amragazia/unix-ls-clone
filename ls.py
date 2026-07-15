@@ -16,13 +16,14 @@ def parse_args(args: list[str]) -> tuple[list[Path], set[str]]:
     paths: list[Path] = []
     for arg in args:
         if arg.startswith("-"):
-            if arg not in valid_options:
-                print(f"ls: invalid option -- '{arg}'", file=sys.stderr)
-                return [], set()
-            options.add(arg)
-            continue
-        path = Path(arg)
-        paths.append(path)
+            for char in arg[1:]:
+                if ("-" + char) not in valid_options:
+                    print(f"ls: invalid option -- '{arg}'", file=sys.stderr)
+                    return [], set()
+                options.add("-" + char)
+        else:
+            path = Path(arg)
+            paths.append(path)
 
     if not paths:
         paths.append(Path("."))
