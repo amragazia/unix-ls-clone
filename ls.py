@@ -18,7 +18,7 @@ def parse_args(args: list[str]) -> tuple[list[Path], set[str]]:
         if arg.startswith("-"):
             if arg not in valid_options:
                 print(f"ls: invalid option -- '{arg}'", file=sys.stderr)
-                return list(), set()
+                return [], set()
             options.add(arg)
             continue
         path = Path(arg)
@@ -62,28 +62,18 @@ class FileInfo:
 
 def get_metadata(item: Path) -> FileInfo:
 
-    metadata = item.stat()
-    # permissions = stat.filemode(metadata.st_mode)
-    # modified_mtime = datetime.fromtimestamp(metadata.st_mtime)
-    # # modified_atime = datetime.fromtimestamp(metadata.st_atime)
-    # # modified_ctime = datetime.fromtimestamp(metadata.st_ctime)
-    # owner = pwd.getpwuid(metadata.st_uid).pw_name
-    # group = grp.getgrgid(metadata.st_gid).gr_name
-    # size = metadata.st_size
-    # hard_links = metadata.st_nlink
+    stat_result = item.stat()
 
-    info = FileInfo(
-        permissions=stat.filemode(metadata.st_mode),
-        owner=pwd.getpwuid(metadata.st_uid).pw_name,
-        group=grp.getgrgid(metadata.st_gid).gr_name,
-        size=metadata.st_size,
-        hard_links=metadata.st_nlink,
-        modified_mtime=datetime.fromtimestamp(metadata.st_mtime),
-        # modified_atime=modified_atime,
-        # modified_ctime=modified_ctime
+    return FileInfo(
+        permissions=stat.filemode(stat_result.st_mode),
+        owner=pwd.getpwuid(stat_result.st_uid).pw_name,
+        group=grp.getgrgid(stat_result.st_gid).gr_name,
+        size=stat_result.st_size,
+        hard_links=stat_result.st_nlink,
+        modified_mtime=datetime.fromtimestamp(stat_result.st_mtime),
+        # modified_atime=datetime.fromtimestamp(stat_result.st_atime),
+        # modified_ctime=datetime.fromtimestamp(stat_result.st_ctime)
     )
-
-    return info
 
 
 def format_long_listing(item: Path) -> str:
@@ -100,23 +90,37 @@ def format_long_listing(item: Path) -> str:
 
 def format_name(item: Path) -> str:
     if item.is_dir():
-        return(f"{BLUE}{item.name}{RESET}")
-    
-    return(item.name)
+        return f"{BLUE}{item.name}{RESET}"
+
+    return item.name
 
 
-def list_directories(valid_paths: list[Path], flags: set[str]) -> None:
+def list_directories(path: Path, flags: set[str]) -> None:
+    if not len(sys.argv) == 2:
 
-    for path in valid_paths:
-        if len(valid_paths) > 1:
-            print(f"{path}:")
-        for item in sorted(path.iterdir(), key=lambda item: item.name.lower()):
+        print(f"{path}:")
+    items = sorted(path.iterdir(), key=lambda item: item.name.lower())
+
+    for item in items:
+        if "-a" not in flags and item.name.startswith("."):
+            continue
+        if "-l" in flags:
+            print(format_long_listing(item=item), end=" ")
+
+        print(format_name(item=item))
+    for item in items:
+        if "-R" in flags and item.is_dir():
             if "-a" not in flags and item.name.startswith("."):
                 continue
-            if "-l" in flags:
-                print(format_long_listing(item=item), end=" ")
-            print(format_name(item=item))
+            print()
+            list_directories(item, flags)
 
+
+def manage_list_directories(valid_paths: list[Path], flags: set[str]) -> None:
+
+    for path in valid_paths:
+
+        list_directories(path, flags)
 
         print()
 
@@ -132,7 +136,7 @@ def main() -> int:
     if not valid_paths:
         return 1
 
-    list_directories(valid_paths, flags)
+    manage_list_directories(valid_paths, flags)
 
     return 0
 
