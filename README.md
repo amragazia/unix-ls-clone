@@ -1,7 +1,6 @@
 # Unix ls Clone
 
-A Python implementation of the Unix `ls` command.
-
+A Python implementation of the Unix ls command supporting recursive directory traversal, long-format listings, hidden files, and colored output.
 ---
 
 ## Features
@@ -74,6 +73,19 @@ python ls.py /home/peter
 | `-R` | Recursive listing |
 
 ---
+
+
+## Skills Demonstrated
+
+- Python
+- Object-Oriented Programming
+- Recursion
+- pathlib
+- File System APIs
+- Command-Line Interface (CLI)
+- Git
+- GitHub
+
 
 ## Future Improvements
 
