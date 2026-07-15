@@ -9,6 +9,7 @@ A Python implementation of the Unix ls command supporting recursive directory tr
 - Recursive directory listing (`-R`)
 - Long listing format (`-l`)
 - Show hidden files (`-a`)
+- Support combined flags (`-la`, `-al`, etc.)
 - Colored directory output
 - Human-readable, well-structured code
 
@@ -28,12 +29,13 @@ A Python implementation of the Unix ls command supporting recursive directory tr
 
 ## Project Structure
 
+```text
 .
 ├── ls.py
 ├── README.md
 ├── pyproject.toml
 └── ...
-
+```
 ---
 
 ## Usage
@@ -89,7 +91,6 @@ python ls.py /home/peter
 
 ## Future Improvements
 
-- Support combined flags (`-la`, `-al`, etc.)
 - Human-readable file sizes (`-h`)
 - Sorting options
 - Better argument parsing with `argparse`
