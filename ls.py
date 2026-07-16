@@ -81,7 +81,7 @@ def format_long_listing(item: Path) -> str:
     metadata = get_metadata(item)
     return (
         f"{metadata.permissions} "
-        f"{metadata.hard_links} "
+        f"{metadata.hard_links:>3} "
         f"{metadata.owner} "
         f"{metadata.group} "
         f"{metadata.size:>6} "
