@@ -97,7 +97,7 @@ def format_name(item: Path) -> str:
 
 
 def list_directories(path: Path, flags: set[str], print_header: bool = False) -> None:
-    if print_header:    
+    if print_header:
         print(f"{path}:")
 
     items = sorted(path.iterdir(), key=lambda item: item.name.lower())
@@ -126,7 +126,7 @@ def manage_list_directories(valid_paths: list[Path], flags: set[str]) -> None:
 
     for i, path in enumerate(valid_paths):
         # Print a blank line between different root directories for readability
-        if i > 0: 
+        if i > 0:
             print()
 
         list_directories(path, flags, print_header=multiple_path)
